@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💉 Thông tin vacxin 💉</title>
+    <style>
+        /* CSS Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f9;
+        }
+        .container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px; /* bạn có thể để 0 nếu muốn full vuông */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .controls .search-container {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+            margin-right: 20px;
+        }
+        .search-container label {
+            font-weight: bold;
+            font-size: 18px;
+            align-self: center;
+        }
+        .search-container input {
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #add-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        #add-btn:hover {
+            background-color: #218838;
+        }
+        #export-btn {
+            background-color: #007bff;
+            color: white;
+            margin-left: 10px;
+        }
+        #export-btn:hover {
+            background-color: #0056b3;
+        }
+        #import-btn {
+            background-color: #ff9800;
+            color: white;
+            margin-left: 10px;
+        }
+        #import-btn:hover {
+            background-color: #e68900;
+        }
+        #clear-all-btn {
+            background-color: #dc3545;
+            color: white;
+            margin-left: 10px;
+        }
+        #clear-all-btn:hover {
+            background-color: #c82333;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+        }
+        th {
+            background-color: #e9ecef;
+            font-weight: bold;
+            color: #495057;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .action-btns {
+            display: flex;
+            gap: 5px;
+        }
+        .edit-btn {
+            background-color: #ffc107;
+            color: black;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        .edit-btn:hover {
+            background-color: #e0a800;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border-radius: 8px; /* bạn có thể để 0 nếu muốn full vuông */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 500px;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .modal-content h2 {
+            margin-top: 0;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>💉 Thông tin vacxin 💉</h1>
+
+    <div class="controls">
+        <div class="search-container">
+            <label for="searchBox">Tìm kiếm:</label>
+            <input type="text" id="searchBox" placeholder="Nhập từ khóa...">
+        </div>
+        <div>
+            <button id="add-btn">Thêm mới</button>
+            <button id="export-btn">Xuất Excel</button>
+            <input type="file" id="import-file" accept=".csv" style="display: none;">
+            <button id="import-btn">Nhập CSV</button>
+            <button id="clear-all-btn">Xóa tất cả</button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table id="vaccineTable">
+            <thead>
+                <tr>
+                    <th>Nhóm Bệnh</th>
+                    <th>Tên Vắc-xin</th>
+                    <th>Phác đồ</th>
+                    <th>Tương Tác</th>
+                    <th>Min/Max</th>
+                    <th>Giá lẻ</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="data-modal" class="modal">
+    <div class="modal-content">
+        <h2 id="modal-title">Thêm mới</h2>
+        <form id="data-form">
+            <input type="hidden" id="data-index">
+            <label for="nhomBenh">Nhóm Bệnh:</label>
+            <input type="text" id="nhomBenh" required>
+
+            <label for="tenVaccine">Tên Vắc-xin:</label>
+            <input type="text" id="tenVaccine" required>
+
+            <label for="phacDo">Phác đồ:</label>
+            <input type="text" id="phacDo" required>
+
+            <label for="tuongTac">Tương Tác:</label>
+            <input type="text" id="tuongTac">
+
+            <label for="minMax">Min/Max:</label>
+            <input type="text" id="minMax">
+
+            <label for="giaLe">Giá lẻ:</label>
+            <input type="text" id="giaLe">
+
+            <div class="modal-buttons">
+                <button type="submit">Lưu</button>
+                <button type="button" id="cancel-btn">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Tên key để lưu dữ liệu trong Local Storage
+    const LOCAL_STORAGE_KEY = 'vaccine_data';
+
+    // Hàm để tải dữ liệu từ Local Storage
+    function loadData() {
+        try {
+            const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+            return storedData ? JSON.parse(storedData) : []; // Trả về mảng rỗng nếu không có dữ liệu
+        } catch (e) {
+            console.error("Lỗi khi tải dữ liệu từ Local Storage", e);
+            return []; // Trả về mảng rỗng nếu có lỗi
+        }
+    }
+
+    // Hàm để lưu dữ liệu vào Local Storage
+    function saveData() {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+    }
+
+    // Tải dữ liệu khi khởi động
+    let data = loadData();
+
+    // Lấy các phần tử HTML cần thiết
+    const searchBox = document.getElementById('searchBox');
+    const tableBody = document.querySelector('#vaccineTable tbody');
+    const addBtn = document.getElementById('add-btn');
+    const exportBtn = document.getElementById('export-btn');
+    const importBtn = document.getElementById('import-btn');
+    const importFile = document.getElementById('import-file');
+    const clearAllBtn = document.getElementById('clear-all-btn');
+    const dataModal = document.getElementById('data-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const dataForm = document.getElementById('data-form');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const dataIndexInput = document.getElementById('data-index');
+
+    const nhomBenhInput = document.getElementById('nhomBenh');
+    const tenVaccineInput = document.getElementById('tenVaccine');
+    const phacDoInput = document.getElementById('phacDo');
+    const tuongTacInput = document.getElementById('tuongTac');
+    const minMaxInput = document.getElementById('minMax');
+    const giaLeInput = document.getElementById('giaLe');
+
+    let isEditing = false;
+
+    // --- Các hàm chính ---
+
+    function renderTable(filterData = data) {
+        tableBody.innerHTML = '';
+        if (filterData.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; font-style:italic; color:#888;">Không có dữ liệu nào để hiển thị.</td></tr>`;
+            return;
+        }
+
+        filterData.sort((a, b) => {
+            if (a.nhomBenh < b.nhomBenh) return -1;
+            if (a.nhomBenh > b.nhomBenh) return 1;
+            if (a.tenVaccine < b.tenVaccine) return -1;
+            if (a.tenVaccine > b.tenVaccine) return 1;
+            if (a.phacDo < b.phacDo) return -1;
+            if (a.phacDo > b.phacDo) return 1;
+            return 0;
+        });
+
+        let prevNhomBenh = null;
+        let prevTenVaccine = null;
+
+        filterData.forEach((item, index) => {
+            const row = document.createElement('tr');
+
+            let nhomBenhCell = '';
+            let tenVaccineCell = '';
+
+            const nhomBenhRowspan = filterData.filter(d => d.nhomBenh === item.nhomBenh).length;
+            const tenVaccineRowspan = filterData.filter(d => d.nhomBenh === item.nhomBenh && d.tenVaccine === item.tenVaccine).length;
+
+            if (item.nhomBenh !== prevNhomBenh) {
+                nhomBenhCell = `<td rowspan="${nhomBenhRowspan}">${item.nhomBenh}</td>`;
+                prevTenVaccine = null;
+            }
+            if (item.tenVaccine !== prevTenVaccine) {
+                tenVaccineCell = `<td rowspan="${tenVaccineRowspan}">${item.tenVaccine}</td>`;
+            }
+
+            const originalIndex = data.findIndex(d =>
+                d.nhomBenh === item.nhomBenh &&
+                d.tenVaccine === item.tenVaccine &&
+                d.phacDo === item.phacDo
+            );
+
+            row.innerHTML = `
+                ${nhomBenhCell}
+                ${tenVaccineCell}
+                <td>${item.phacDo}</td>
+                <td>${item.tuongTac}</td>
+                <td>${item.minMax}</td>
+                <td>${item.giaLe}</td>
+                <td class="action-btns">
+                    <button class="edit-btn" data-index="${originalIndex}">Sửa</button>
+                    <button class="delete-btn" data-index="${originalIndex}">Xóa</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+
+            prevNhomBenh = item.nhomBenh;
+            prevTenVaccine = item.tenVaccine;
+        });
+    }
+
+    function handleSearch() {
+        const searchTerm = searchBox.value.toLowerCase().trim();
+        const filteredData = data.filter(item => {
+            return Object.values(item).some(value =>
+                String(value).toLowerCase().includes(searchTerm)
+            );
+        });
+        renderTable(filteredData);
+    }
+
+    function openAddModal() {
+        modalTitle.textContent = 'Thêm mới';
+        dataForm.reset();
+        dataIndexInput.value = '';
+        isEditing = false;
+        dataModal.style.display = 'flex';
+    }
+
+    function openEditModal(index) {
+        modalTitle.textContent = 'Chỉnh sửa';
+        const item = data[index];
+        dataIndexInput.value = index;
+        nhomBenhInput.value = item.nhomBenh;
+        tenVaccineInput.value = item.tenVaccine;
+        phacDoInput.value = item.phacDo;
+        tuongTacInput.value = item.tuongTac;
+        minMaxInput.value = item.minMax;
+        giaLeInput.value = item.giaLe;
+        isEditing = true;
+        dataModal.style.display = 'flex';
+    }
+
+    function handleFormSubmit(event) {
+        event.preventDefault();
+        const newItem = {
+            nhomBenh: nhomBenhInput.value,
+            tenVaccine: tenVaccineInput.value,
+            phacDo: phacDoInput.value,
+            tuongTac: tuongTacInput.value,
+            minMax: minMaxInput.value,
+            giaLe: giaLeInput.value,
+        };
+
+        if (isEditing) {
+            const index = dataIndexInput.value;
+            data[index] = newItem;
+        } else {
+            data.push(newItem);
+        }
+
+        dataModal.style.display = 'none';
+        saveData();
+        renderTable();
+    }
+
+    function handleDelete(index) {
+        if (confirm('Bạn có chắc chắn muốn xóa dòng này không?')) {
+            data.splice(index, 1);
+            saveData();
+            renderTable();
+        }
+    }
+
+    function handleClearAll() {
+        if (confirm('Bạn có chắc chắn muốn xóa TẤT CẢ dữ liệu không? Thao tác này không thể hoàn tác!')) {
+            data = [];
+            saveData();
+            renderTable();
+            alert('Đã xóa tất cả dữ liệu thành công.');
+        }
+    }
+
+    // Hàm xuất dữ liệu ra file CSV
+    function exportToExcel() {
+        const headers = ["Nhóm Bệnh", "Tên Vắc-xin", "Phác đồ", "Tương Tác", "Min/Max", "Giá lẻ"];
+        let csv = [headers.map(h => `"${h.replace(/"/g, '""')}"`).join(',')];
+
+        data.forEach(item => {
+            const rowData = [
+                `"${item.nhomBenh.replace(/"/g, '""')}"`,
+                `"${item.tenVaccine.replace(/"/g, '""')}"`,
+                `"${item.phacDo.replace(/"/g, '""')}"`,
+                `"${item.tuongTac.replace(/"/g, '""')}"`,
+                `"${item.minMax.replace(/"/g, '""')}"`,
+                `"${item.giaLe.replace(/"/g, '""')}"`
+            ];
+            csv.push(rowData.join(','));
+        });
+
+        const csvFile = new Blob(["\uFEFF", csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(csvFile);
+        link.download = 'du_lieu_vacxin.csv';
+        link.click();
+    }
+
+    // Hàm để phân tích chuỗi CSV thành mảng các đối tượng
+    function parseCsv(csvString) {
+        const lines = csvString.trim().split('\n');
+        const headers = lines[0].split(',').map(header => header.trim().replace(/"/g, ''));
+        const result = [];
+
+        // Regex để phân tách các trường, có tính đến các trường được bao quanh bởi dấu ngoặc kép
+        const fieldRegex = /"([^"]*)"|[^,]+/g;
+
+        for (let i = 1; i < lines.length; i++) {
+            const currentLine = lines[i];
+            const currentFields = [];
+            let match;
+            
+            // Lặp qua các trường khớp với regex
+            while ((match = fieldRegex.exec(currentLine)) !== null) {
+                // Sử dụng nhóm thứ 1 nếu có dấu ngoặc kép, nếu không thì sử dụng toàn bộ khớp
+                currentFields.push(match[1] || match[0]);
+            }
+
+            if (currentFields.length !== headers.length) {
+                console.error(`Lỗi: Dòng ${i+1} có số lượng cột không khớp: ${currentFields.length} thay vì ${headers.length}`);
+                continue;
+            }
+            
+            const obj = {};
+            for (let j = 0; j < headers.length; j++) {
+                obj[headers[j]] = currentFields[j] ? currentFields[j].trim().replace(/"/g, '') : '';
+            }
+            result.push(obj);
+        }
+        return result;
+    }
+
+    // Hàm nhập dữ liệu từ file CSV
+    function importFromCsv(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const csvText = e.target.result;
+            const importedData = parseCsv(csvText);
+
+            // Ánh xạ dữ liệu dựa trên tiêu đề cột chính xác
+            const formattedData = importedData.map(row => ({
+                nhomBenh: row["Nhóm Bệnh"] || '',
+                tenVaccine: row["Tên Vắc-xin"] || '',
+                phacDo: row["Phác đồ"] || '',
+                tuongTac: row["Tương Tác"] || '',
+                minMax: row["Min/Max"] || '',
+                giaLe: row["Giá lẻ"] || '',
+            }));
+
+            data.push(...formattedData);
+            saveData();
+            renderTable();
+            alert(`Đã nhập thành công ${formattedData.length} mục từ file CSV!`);
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    // --- Lắng nghe sự kiện ---
+    searchBox.addEventListener('input', handleSearch);
+    addBtn.addEventListener('click', openAddModal);
+    tableBody.addEventListener('click', (event) => {
+        const target = event.target;
+        if (target.classList.contains('edit-btn')) {
+            const index = target.getAttribute('data-index');
+            openEditModal(index);
+        } else if (target.classList.contains('delete-btn')) {
+            const index = target.getAttribute('data-index');
+            handleDelete(index);
+        }
+    });
+    dataForm.addEventListener('submit', handleFormSubmit);
+    cancelBtn.addEventListener('click', () => {
+        dataModal.style.display = 'none';
+    });
+    window.addEventListener('click', (event) => {
+        if (event.target === dataModal) {
+            dataModal.style.display = 'none';
+        }
+    });
+
+    exportBtn.addEventListener('click', exportToExcel);
+    clearAllBtn.addEventListener('click', handleClearAll);
+    
+    // Lắng nghe sự kiện click vào nút "Nhập CSV"
+    importBtn.addEventListener('click', () => {
+        importFile.click();
+    });
+
+    importFile.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            importFromCsv(file);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderTable();
+    });
+</script>
+
+</body>
+</html>
