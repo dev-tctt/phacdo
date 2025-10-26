@@ -7,7 +7,13 @@
     <style>
         body {font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f7f9;}
         .container {width: 100%; max-width: 100%; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
-        h1 {text-align: center; color: #333; margin-bottom: 20px;}
+        h1 {
+  text-align: center;
+  color: #333;
+  font-size: 22px;
+  margin: 5px 0 10px;
+  font-weight: 600;
+}
         .controls {display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap;}
         .controls .search-container {flex: 1; display: flex; gap: 10px; margin-right: 20px;}
         .search-container label {font-weight: bold; font-size: 18px; align-self: center;}
@@ -31,6 +37,41 @@
 <body>
 <div class="container">
     <h1>💉 Thông tin vacxin 💉</h1>
+
+<!-- 🧩 MODULE TÍNH TUỔI (PHIÊN BẢN GỌN) -->
+<div id="age-calculator" style="font-family:sans-serif;display:inline-flex;align-items:center;gap:6px;margin:8px 0;">
+  <label for="dob" style="white-space:nowrap;">Ngày sinh:</label>
+  <input type="date" id="dob" style="padding:4px 6px;border-radius:4px;border:1px solid #bbb;font-size:14px;">
+  <span id="result" style="font-weight:600;color:#222;margin-left:6px;">–</span>
+</div>
+
+<script>
+document.getElementById("dob").addEventListener("change", function() {
+  const dob = new Date(this.value);
+  const result = document.getElementById("result");
+  if (isNaN(dob)) return result.textContent = "–";
+
+  const today = new Date();
+  let years = today.getFullYear() - dob.getFullYear();
+  let months = today.getMonth() - dob.getMonth();
+  let days = today.getDate() - dob.getDate();
+
+  if (days < 0) {
+    months--;
+    const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+    days += prevMonth.getDate();
+  }
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  const totalDays = Math.floor((today - dob) / (1000 * 60 * 60 * 24));
+  result.textContent = `${years} năm ${months} tháng ${days} ngày = ${totalDays} ngày`;
+});
+</script>
+
+
     <div class="controls">
         <div class="search-container">
             <label for="searchBox">Tìm kiếm:</label>
